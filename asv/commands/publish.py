@@ -132,11 +132,13 @@ class Publish(Command):
 
                 for key, val in six.iteritems(results.results):
                     b = benchmarks.get(key)
+                    print('val, b:', val, b)
                     result = compatible_results(val, b)
 
                     benchmark_names.add(key)
 
                     for branch in branch_cache.get_branches(results.commit_hash):
+                        print('key, branch:', key, branch)
                         cur_params = dict(results.params)
                         cur_params['branch'] = safe_branch_name(branch)
 

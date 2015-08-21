@@ -53,6 +53,7 @@ class Graph(object):
             if key not in params:
                 params[key] = None
 
+        print(benchmark_name)
         self.benchmark_name = benchmark_name
         self.params = params
         self.data_points = {}

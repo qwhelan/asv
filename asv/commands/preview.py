@@ -86,6 +86,7 @@ class Preview(Command):
             def translate_path(self, path):
                 path = SimpleHTTPServer.SimpleHTTPRequestHandler.translate_path(
                     self, path)
+                log.info(util.long_path(path))
                 return util.long_path(path)
 
         httpd, base_url = create_httpd(Handler, port=port)
