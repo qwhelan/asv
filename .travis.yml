@@ -70,6 +70,7 @@ install:
     set -e
     export TRAVIS_PYTHON=`which python`
     export TRAVIS_PIP=`which pip`
+    export OFFLINE='--offline'
     if [[ $USE_CONDA == true ]]; then
       mkdir -p $HOME/download;
       export MINICONDA_SH="Miniconda3-4.5.11-Linux-x86_64.sh";
@@ -80,10 +81,12 @@ install:
       popd;
       . $HOME/miniconda3/etc/profile.d/conda.sh  # enable conda bash function
       conda activate
-      conda install --yes conda conda-build bzip2
+      conda install --yes conda conda-build conda-env conda-verify bzip2 pip
       conda info
       if $TRAVIS_PYTHON -c 'import virtualenv'; then echo "ERROR: virtualenv package is installed"; exit 1; fi;
       $TRAVIS_PYTHON .continuous-integration/download_reqs.py
+      # Disable pending resolution of https://github.com/conda/conda-build/issues/695
+      OFFLINE=''
     else
       if $TRAVIS_PYTHON -c 'import sys; sys.exit(0 if "__pypy__" in sys.modules else 1)'; then
         $TRAVIS_PIP install virtualenv;
@@ -96,7 +99,7 @@ install:
   - $TRAVIS_PYTHON setup.py build_ext -i
 
 script:
-  - $TRAVIS_PYTHON -m pytest -l $COVERAGE -vv --webdriver=FirefoxHeadless -n 3 --offline test
+  - $TRAVIS_PYTHON -m pytest -l $COVERAGE -vv --webdriver=FirefoxHeadless -n 3 $OFFLINE test
 
 after_script:
   - if [[ "$COVERAGE" != '' ]]; then

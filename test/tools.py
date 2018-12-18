@@ -127,18 +127,24 @@ def locked_cache_dir(config, cache_key, timeout=900, tag=None):
         # asv version
         tag_fn = join(six.text_type(base_dir), 'tag.json')
         tag_content = [asv.__version__, repr(tag)]
+        print('cache path', str(cache_dir))
         if os.path.isdir(cache_dir):
+            print('base_dir', str(os.listdir(six.text_type(base_dir))))
+            print('cache_dir', str(os.listdir(six.text_type(cache_dir))))
             try:
-                if util.load_json(tag_fn) != tag_content:
+                if os.path.exists(tag_fn) and util.load_json(tag_fn) != tag_content:
                     raise ValueError()
+                print('keeping cache')
             except (IOError, ValueError, util.UserError):
+                print('nuking cache')
                 shutil.rmtree(cache_dir)
+        else:
+            print('no cache!', str(cache_dir))
 
         if not os.path.isdir(cache_dir):
             os.makedirs(cache_dir)
 
         yield cache_dir
-
         util.write_json(tag_fn, tag_content)
     finally:
         lock.release()
@@ -717,6 +723,8 @@ def _build_dummy_conda_pkg(name, version, build_dir, dst):
         subprocess.check_call([conda, 'build',
                                '--output-folder=' + dst,
                                '--no-anaconda-upload',
+#                               '--override-channels',
+#                               '-c file://' + dst,
                                '--python=' + pyver,
                                '.'],
                               cwd=build_dir)
