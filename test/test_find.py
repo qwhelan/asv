@@ -34,9 +34,18 @@ def test_find(capfd, tmpdir):
 
     tmpdir, local, conf, machine_file = generate_basic_conf(tmpdir, values=values, dummy_packages=False)
 
-    # Test find at least runs
-    tools.run_asv_with_conf(conf, 'find', "master~5..master", "params_examples.track_find_test",
+    def get_result_files():
+        results_dir = os.path.join(conf.results_dir, 'orangutan')
+        if not os.path.isdir(results_dir):
+            return ['machine.json']
+        return sorted(os.listdir(results_dir))
+
+    # Test find at least runs, not saving results
+    prev_result_files = get_result_files()
+    tools.run_asv_with_conf(conf, 'find', "--skip-save",
+                            "master~5..master", "params_examples.track_find_test",
                             _machine_file=machine_file)
+    assert get_result_files() == prev_result_files
 
     # Check it found the first commit after the initially tested one
     output, err = capfd.readouterr()
@@ -45,6 +54,13 @@ def test_find(capfd, tmpdir):
         [which('git'), 'rev-parse', 'master^'], cwd=conf.repo)
 
     assert "Greatest regression found: {0}".format(regression_hash[:8]) in output
+
+    # Test find at least runs, saving results --- should give same outcome
+    tools.run_asv_with_conf(conf, 'find', "master~5..master", "params_examples.track_find_test",
+                            _machine_file=machine_file)
+    output2, err2 = capfd.readouterr()
+    assert output2.strip() == output.strip()
+    assert get_result_files() != prev_result_files
 
 
 @pytest.mark.flaky(reruns=1, reruns_delay=5)  # depends on a timeout
